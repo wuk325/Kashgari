@@ -7,10 +7,9 @@ defualt_executer: &defualt_executer
 default_steps:
   - switch_to_3_7: &switch_to_3_7
       run:
-        name: "Switch to Python v3.7"
+        name: "Switch to Python v3.6"
         command: |
-          pyenv versions
-          pyenv global 3.7.0
+          pyenv global 3.6.5
 
   - create_env: &create_env
       run:
@@ -22,12 +21,12 @@ default_steps:
       save_cache:
         paths:
           - ./venv
-        key: py3.7-{{ checksum "requirements.dev.txt" }}
+        key: py3.6-{{ checksum "requirements.dev.txt" }}
 
   - restore_3_7_cache: &restore_3_7_cache
       restore_cache:
         keys:
-          - py3.7-{{ checksum "requirements.dev.txt" }}
+          - py3.6-{{ checksum "requirements.dev.txt" }}
 
   - install_dependencies: &install_dependencies
       run:
@@ -70,7 +69,6 @@ jobs:
             flake8 kashgari
 
   test_1.14:
-    name: "Test TensorFlow 1.14.0"
     <<: *defualt_executer
     parallelism: 4
     steps:
@@ -93,7 +91,6 @@ jobs:
           path: test-reports
 
   test_2.0:
-    name: "Test TensorFlow 1.14.0"
     <<: *defualt_executer
     parallelism: 4
 
@@ -138,10 +135,10 @@ workflows:
   lint-test-and-deploy:
     jobs:
       - lint
-      - test_3.6:
+      - test_1.14:
           requires:
             - lint
-      - test_3.7:
+      - test_2.0:
           requires:
             - lint
       - document:
@@ -150,5 +147,5 @@ workflows:
               only:
                 - master
           requires:
-            - test_3.6
-            - test_3.7
+            - test_1.14
+            - test_2.0
