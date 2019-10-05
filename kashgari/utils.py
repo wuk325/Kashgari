@@ -30,6 +30,10 @@ from kashgari.tasks.classification.base_model import BaseClassificationModel
 from kashgari.tasks.labeling.base_model import BaseLabelingModel
 
 
+def check_is_tf2() -> bool:
+    return tf.__version__.split('.')[0] == '2'
+
+
 def unison_shuffled_copies(a, b):
     assert len(a) == len(b)
     c = list(zip(a, b))
@@ -121,15 +125,19 @@ def convert_to_saved_model(model: BaseModel,
         version = round(time.time())
     export_path = os.path.join(model_path, str(version))
 
-    if inputs is None:
-        inputs = {i.name: i for i in model.tf_model.inputs}
-    if outputs is None:
-        outputs = {o.name: o for o in model.tf_model.outputs}
-    sess = keras.backend.get_session()
-    saved_model.simple_save(session=sess,
-                            export_dir=export_path,
-                            inputs=inputs,
-                            outputs=outputs)
+    if check_is_tf2():
+        tf.keras.experimental.export_saved_model(model.tf_model, export_path)
+    else:
+        if inputs is None:
+            inputs = {i.name: i for i in model.tf_model.inputs}
+        if outputs is None:
+            outputs = {o.name: o for o in model.tf_model.outputs}
+
+        sess = keras.backend.get_session()
+        saved_model.simple_save(session=sess,
+                                export_dir=export_path,
+                                inputs=inputs,
+                                outputs=outputs)
 
     with open(os.path.join(export_path, 'model_info.json'), 'w') as f:
         f.write(json.dumps(model.info(), indent=2, ensure_ascii=True))
@@ -143,3 +151,6 @@ if __name__ == "__main__":
     print(p.process_x_dataset([list('语言模型')]))
     print(p.label2idx)
     print(p.token2idx)
+    import datetime
+
+    datetime.datetime.now()

@@ -33,9 +33,9 @@ default_steps:
       run:
         name: install dependencies
         command: |
-          ls .
           source venv/bin/activate
           pip install -r requirements.dev.txt
+          pip install tensorflow==1.14.0
 
   - run_tests: &run_tests
       run:
@@ -69,26 +69,22 @@ jobs:
             source venv/bin/activate
             flake8 kashgari
 
-  test_3.6:
+  test_1.14:
+    name: "Test TensorFlow 1.14.0"
     <<: *defualt_executer
     parallelism: 4
     steps:
       - checkout
-      - run:
-          name: "Switch to Python v3.6"
-          command: |
-            pyenv versions
-            pyenv global 3.6.5
+      - *switch_to_3_7
       - *create_env
-      - restore_cache:
-          keys:
-            - py3.6-{{ checksum "requirements.dev.txt" }}
-            - py3.6-
+      - *restore_3_7_cache
       - *install_dependencies
-      - save_cache:
-          paths:
-            - ./venv
-          key: py3.6-{{ checksum "requirements.dev.txt" }}
+      - run:
+          name: install tensorflow==2.0.0
+          command: |
+            source venv/bin/activate
+            pip install tensorflow==2.0.0
+      - *save_3_7_cache
       - *run_tests
       - store_test_results:
           path: test-reports
@@ -96,7 +92,8 @@ jobs:
       - store_artifacts:
           path: test-reports
 
-  test_3.7:
+  test_2.0:
+    name: "Test TensorFlow 1.14.0"
     <<: *defualt_executer
     parallelism: 4
 
@@ -106,6 +103,11 @@ jobs:
       - *create_env
       - *restore_3_7_cache
       - *install_dependencies
+      - run:
+          name: install tensorflow==1.14.0
+          command: |
+            source venv/bin/activate
+            pip install tensorflow==1.14.0
       - *save_3_7_cache
       - *run_tests
       - store_test_results:

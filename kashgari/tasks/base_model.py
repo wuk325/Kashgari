@@ -175,7 +175,8 @@ class BaseModel(object):
                                                                cpu_relocation=cpu_relocation)
                 self.compile_model()
 
-    def build_tpu_model(self, strategy: tf.contrib.distribute.TPUStrategy,
+    def build_tpu_model(self,
+                        strategy,
                         x_train: Union[Tuple[List[List[str]], ...], List[List[str]]],
                         y_train: Union[List[List[str]], List[str]],
                         x_validate: Union[Tuple[List[List[str]], ...], List[List[str]]] = None,
